@@ -400,6 +400,8 @@ static int pkey_sm2_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
     case EVP_PKEY_CTRL_PKCS7_DECRYPT:
     case EVP_PKEY_CTRL_PEER_KEY:
     case EVP_PKEY_CTRL_DIGESTINIT:
+    case EVP_PKEY_CTRL_PKCS7_SIGN:
+
         /* nothing to be inited, this is to suppress the error... */
         return 1;
 
