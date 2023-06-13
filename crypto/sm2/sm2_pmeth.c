@@ -37,6 +37,8 @@ typedef struct {
     EC_KEY *peer_ekey;
     /* for SM2 key exchange only */
     int responsor;
+    /* sm2/ecc encrypt out format, 0 for ASN1 */
+    int encdata_format;
 } SM2_PKEY_CTX;
 
 static int pkey_sm2_init(EVP_PKEY_CTX *ctx)
@@ -404,7 +406,12 @@ static int pkey_sm2_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
 
         /* nothing to be inited, this is to suppress the error... */
         return 1;
+#ifndef OPENSSL_NO_CNSM
+    case EVP_PKEY_CTRL_SET_ENCDATA:
+        smctx->encdata_format = p1;
+        return 1;
 
+#endif // !OPENSSL_NO_CNSM
     default:
         return -2;
     }

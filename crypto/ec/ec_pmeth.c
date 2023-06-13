@@ -318,7 +318,8 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return dctx->kdf_ukmlen;
 
     case EVP_PKEY_CTRL_MD:
-        if (EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
+        if (EVP_MD_type((const EVP_MD*)p2) !=  NID_sm3 &&
+            EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
             EVP_MD_type((const EVP_MD *)p2) != NID_ecdsa_with_SHA1 &&
             EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
             EVP_MD_type((const EVP_MD *)p2) != NID_sha256 &&

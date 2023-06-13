@@ -29,12 +29,35 @@ PKCS7 *PKCS7_sign(X509 *signcert, EVP_PKEY *pkey, STACK_OF(X509) *certs,
         PKCS7err(PKCS7_F_PKCS7_SIGN, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
+    //2023年6月11日23:48:06 沈雪冰 begin add,根据pkey类型设置SM2 PKCS7的类型,即GMT 0010-2012 SM2密码算法加密签名消息语法规范中的要求的oid
+    if (pkey)
+    {
+        int type = EVP_PKEY_base_id(pkey);
+        if (type == EVP_PKEY_SM2 || type == EVP_PKEY_EC) {
+            if (!PKCS7_set_type(p7, NID_pkcs7_sm2_signed)) //1.2.156.10197.6.1.4.2.2
+                goto err;
 
-    if (!PKCS7_set_type(p7, NID_pkcs7_signed))
-        goto err;
+            if (!PKCS7_content_new(p7, NID_pkcs7_sm2_data)) //1.2.156.10197.6.1.4.2.1
+                goto err;
+        }
+    }
+    else if (flags & PKCS7_SM2_GMT0010)
+    {
+        if (!PKCS7_set_type(p7, NID_pkcs7_sm2_signed)) //1.2.156.10197.6.1.4.2.2
+            goto err;
 
-    if (!PKCS7_content_new(p7, NID_pkcs7_data))
-        goto err;
+        if (!PKCS7_content_new(p7, NID_pkcs7_sm2_data)) //1.2.156.10197.6.1.4.2.1
+            goto err;
+    }  
+    //2023年6月11日23:48:06 沈雪冰 end add,根据pkey类型设置SM2 PKCS7的类型,即GMT 0010-2012 SM2密码算法加密签名消息语法规范中的要求的oid
+    else
+    {
+        if (!PKCS7_set_type(p7, NID_pkcs7_signed))
+            goto err;
+
+        if (!PKCS7_content_new(p7, NID_pkcs7_data))
+            goto err;
+    }
 
     if (pkey && !PKCS7_sign_add_signer(p7, signcert, pkey, NULL, flags)) {
         PKCS7err(PKCS7_F_PKCS7_SIGN, PKCS7_R_PKCS7_ADD_SIGNER_ERROR);
@@ -66,23 +89,34 @@ int PKCS7_final(PKCS7 *p7, BIO *data, int flags)
 {
     BIO *p7bio;
     int ret = 0;
-
-    if ((p7bio = PKCS7_dataInit(p7, NULL, 0)) == NULL) {
+    int hashType = 0;
+    if (flags & PKCS7_SM2_HASH)
+    {
+        hashType = 1; //外送hash值
+    }
+    else if(flags & PKCS7_SM2_ADDHASH_Z)
+    {
+        hashType = 0; //外送hash值
+    }
+    else
+    {
+        hashType = 2;//原文裸签
+    }
+    if ((p7bio = PKCS7_dataInit(p7, NULL, hashType)) == NULL) {
         PKCS7err(PKCS7_F_PKCS7_FINAL, ERR_R_MALLOC_FAILURE);
         return 0;
     }
 
-    SMIME_crlf_copy(data, p7bio, flags);
+    if (!SMIME_crlf_copy(data, p7bio, flags))
+        goto err;
 
     (void)BIO_flush(p7bio);
-
-    if (!PKCS7_dataFinal(p7, p7bio, 0)) {
+    
+    if (!PKCS7_dataFinal(p7, p7bio, hashType)) {
         PKCS7err(PKCS7_F_PKCS7_FINAL, PKCS7_R_PKCS7_DATASIGN);
         goto err;
     }
-
     ret = 1;
-
  err:
     BIO_free_all(p7bio);
 

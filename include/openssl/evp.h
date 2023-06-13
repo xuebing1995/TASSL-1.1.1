@@ -429,6 +429,8 @@ typedef int (EVP_PBE_KEYGEN) (EVP_CIPHER_CTX *ctx, const char *pass,
 # ifndef OPENSSL_NO_EC
 #  define EVP_PKEY_assign_EC_KEY(pkey,eckey) EVP_PKEY_assign((pkey),EVP_PKEY_EC,\
                                         (char *)(eckey))
+#  define EVP_PKEY_assign_SM2_KEY(pkey,eckey) EVP_PKEY_assign((pkey),EVP_PKEY_EC,\
+                                        (char *)(eckey))
 # endif
 # ifndef OPENSSL_NO_SIPHASH
 #  define EVP_PKEY_assign_SIPHASH(pkey,shkey) EVP_PKEY_assign((pkey),EVP_PKEY_SIPHASH,\

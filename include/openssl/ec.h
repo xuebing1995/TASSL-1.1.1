@@ -1511,6 +1511,42 @@ void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
 # define EVP_PKEY_ECDH_KDF_X9_62   EVP_PKEY_ECDH_KDF_X9_63
 
 
+# ifndef OPENSSL_NO_CNSM
+
+#  define EVP_PKEY_CTRL_SET_PEER_ID                      (EVP_PKEY_ALG_CTRL + 20)
+#  define EVP_PKEY_CTRL_SET_SELF_ID                      (EVP_PKEY_ALG_CTRL + 21)
+#  define EVP_PKEY_CTRL_SET_SERVER                       (EVP_PKEY_ALG_CTRL + 22)
+#  define EVP_PKEY_CTRL_SET_PEER_ECDHE                   (EVP_PKEY_ALG_CTRL + 23)
+#  define EVP_PKEY_CTRL_GEN_SELF_ECDHE                   (EVP_PKEY_ALG_CTRL + 24)
+#  define EVP_PKEY_CTRL_GET_SELF_ECDHE                   (EVP_PKEY_ALG_CTRL + 25)
+#  define EVP_PKEY_CTRL_SET_SELF_ECDHE                   (EVP_PKEY_ALG_CTRL + 26)
+#  define EVP_PKEY_CTRL_SET_ENCDATA                      (EVP_PKEY_ALG_CTRL + 27)
+
+#  define EVP_PKEY_CTX_set_sm2_peer_id(ctx, uid, uid_len) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_DERIVE, EVP_PKEY_CTRL_SET_PEER_ID, uid_len, (void *)uid)
+
+#  define EVP_PKEY_CTX_set_sm2_self_id(ctx, uid, uid_len) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_DERIVE, EVP_PKEY_CTRL_SET_SELF_ID, uid_len, (void *)uid)
+
+#  define EVP_PKEY_CTX_set_sm2_server_tag(ctx, tag) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_DERIVE, EVP_PKEY_CTRL_SET_SERVER, tag, NULL)
+
+#  define EVP_PKEY_CTX_set_sm2_peer_ecdhe(ctx, ecdhe) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_DERIVE, EVP_PKEY_CTRL_SET_PEER_ECDHE, 0, (void *)ecdhe)
+
+#  define EVP_PKEY_CTX_gen_sm2_ecdhe_key(ctx, ecdhe) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_DERIVE|EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_GEN_SELF_ECDHE, 0, (void *)ecdhe)
+
+#  define EVP_PKEY_CTX_get_sm2_ecdhe_key(ctx, ecdhe) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_DERIVE|EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_GET_SELF_ECDHE, 0, (void *)ecdhe)
+
+#  define EVP_PKEY_CTX_set_sm2_ecdhe_key(ctx, ecdhe) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_DERIVE|EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_SET_SELF_ECDHE, 0, (void *)ecdhe)
+
+#  define EVP_PKEY_CTX_set_sm2_encdata_format(ctx, format) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_ENCRYPT|EVP_PKEY_OP_DECRYPT, EVP_PKEY_CTRL_SET_ENCDATA, format, NULL)
+# endif // !OPENSSL_NO_CNSM
+
 #  ifdef  __cplusplus
 }
 #  endif

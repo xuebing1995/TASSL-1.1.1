@@ -511,7 +511,7 @@ static int ec_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2)
             */
             //Modified by mxl,20201209
             if(snid == NID_sm3WithSM2Sign){
-            	snid = NID_sm2signature;
+            	//snid = NID_sm2signature;  //2023年6月6日23:51:17 沈雪冰屏蔽，暂时不使用工行的oid，还是使用标准的501
             }
             
             X509_ALGOR_set0(alg2, OBJ_nid2obj(snid), V_ASN1_UNDEF, 0);
