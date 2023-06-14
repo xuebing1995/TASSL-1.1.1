@@ -247,7 +247,7 @@ int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
     int i, j = 0, k, ret = 0;
     BIO *p7bio = NULL;
     BIO *tmpin = NULL, *tmpout = NULL;
-
+    int hashType = 0;
     if (!p7) {
         PKCS7err(PKCS7_F_PKCS7_VERIFY, PKCS7_R_INVALID_NULL_POINTER);
         return 0;
@@ -342,8 +342,20 @@ int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
         }
     } else
         tmpin = indata;
-
-    if ((p7bio = PKCS7_dataInit(p7, tmpin, 0)) == NULL)
+    
+    if (flags & PKCS7_SM2_HASH)
+    {
+        hashType = 1; //外送hash值
+    }
+    else if (flags & PKCS7_SM2_ADDHASH_Z)
+    {
+        hashType = 0; //外送hash值
+    }
+    else
+    {
+        hashType = 2;//原文裸签
+    }
+    if ((p7bio = PKCS7_dataInit(p7, tmpin, hashType)) == NULL)
         goto err;
 
     if (flags & PKCS7_TEXT) {
