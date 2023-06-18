@@ -96,7 +96,7 @@ int PKCS7_final(PKCS7 *p7, BIO *data, int flags)
     }
     else if(flags & PKCS7_SM2_ADDHASH_Z)
     {
-        hashType = 0; //外送hash值
+        hashType = 0; //计算Z值到P7摘要中
     }
     else
     {
@@ -248,6 +248,7 @@ int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
     BIO *p7bio = NULL;
     BIO *tmpin = NULL, *tmpout = NULL;
     int hashType = 0;
+    int setCerts = 0;
     if (!p7) {
         PKCS7err(PKCS7_F_PKCS7_VERIFY, PKCS7_R_INVALID_NULL_POINTER);
         return 0;
@@ -349,15 +350,27 @@ int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
     }
     else if (flags & PKCS7_SM2_ADDHASH_Z)
     {
-        hashType = 0; //外送hash值
+        hashType = 0; //计算Z值到P7摘要中
     }
     else
     {
         hashType = 2;//原文裸签
     }
+    //2023年6月18日22:53:25 沈雪冰 bengin add, 添加证书链用于计算SM2签名时的Z值
+	if ((OBJ_obj2nid(p7->type) == NID_pkcs7_sm2_signed) && (!p7->d.sign->cert))
+	{
+        setCerts = 1;
+		p7->d.sign->cert = certs; //为了SM2做Z值计算，必须要有证书链
+	}
+    //2023年6月18日22:53:25 沈雪冰 end add, 添加证书链用于计算SM2签名时的Z值
     if ((p7bio = PKCS7_dataInit(p7, tmpin, hashType)) == NULL)
         goto err;
-
+    //2023年6月18日22:53:25 沈雪冰 bengin add, 添加证书链用于计算SM2签名时的Z值,需要重新设置为NULL
+    if (setCerts)
+    {
+        p7->d.sign->cert = NULL;
+    }
+    //2023年6月18日22:53:25 沈雪冰 end add, 添加证书链用于计算SM2签名时的Z值,需要重新设置为NULL
     if (flags & PKCS7_TEXT) {
         if ((tmpout = BIO_new(BIO_s_mem())) == NULL) {
             PKCS7err(PKCS7_F_PKCS7_VERIFY, ERR_R_MALLOC_FAILURE);

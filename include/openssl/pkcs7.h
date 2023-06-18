@@ -168,23 +168,23 @@ DEFINE_STACK_OF(PKCS7)
 
 /* S/MIME related flags */
 
-# define PKCS7_TEXT              0x1
-# define PKCS7_NOCERTS           0x2
-# define PKCS7_NOSIGS            0x4
-# define PKCS7_NOCHAIN           0x8
-# define PKCS7_NOINTERN          0x10
-# define PKCS7_NOVERIFY          0x20
-# define PKCS7_DETACHED          0x40
-# define PKCS7_BINARY            0x80
-# define PKCS7_NOATTR            0x100
-# define PKCS7_NOSMIMECAP        0x200
-# define PKCS7_NOOLDMIMETYPE     0x400
-# define PKCS7_CRLFEOL           0x800
-# define PKCS7_STREAM            0x1000
-# define PKCS7_NOCRL             0x2000
-# define PKCS7_PARTIAL           0x4000
-# define PKCS7_REUSE_DIGEST      0x8000
-# define PKCS7_NO_DUAL_CONTENT   0x10000
+# define PKCS7_TEXT              0x1        //类型为TEXT/plain的MIME标头将预先添加到数据中。
+# define PKCS7_NOCERTS           0x2        //不包含证书链
+# define PKCS7_NOSIGS            0x4        //不包含数字签名
+# define PKCS7_NOCHAIN           0x8        //不验证证书链
+# define PKCS7_NOINTERN          0x10       //不验证证书的可用性
+# define PKCS7_NOVERIFY          0x20       //不进行数字签名验证
+# define PKCS7_DETACHED          0x40       //数字签名不与数据绑定（独立的数字签名）
+# define PKCS7_BINARY            0x80       //签名内容为二进制类型
+# define PKCS7_NOATTR            0x100      //不包括属性
+# define PKCS7_NOSMIMECAP        0x200      //不能支持 SMIME 功能，不包含加密算法能力集
+# define PKCS7_NOOLDMIMETYPE     0x400      //不支持旧的 SMIME 类型
+# define PKCS7_CRLFEOL           0x800      //使用 CRLF（回车+换行） 行尾进行编码
+# define PKCS7_STREAM            0x1000     //以流的方式进行处理
+# define PKCS7_NOCRL             0x2000     //不检查撤销列表
+# define PKCS7_PARTIAL           0x4000     //消息可能被截断
+# define PKCS7_REUSE_DIGEST      0x8000     //重复利用摘要算法
+# define PKCS7_NO_DUAL_CONTENT   0x10000    //不允许双重部分身份验证
 # define PKCS7_SM2_GMT0010       0x20000    //2023年6月14日00:59:36 沈雪冰 add，SM2时使用GMT 0010-2012中的oid
 # define PKCS7_SM2_HASH          0x40000    //2023年6月14日00:59:36 沈雪冰 add，签名原文已经是Hash了
 # define PKCS7_SM2_ADDHASH_Z     0x80000    //2023年6月14日00:59:36 沈雪冰 add，p7结构中摘要值为Z值
