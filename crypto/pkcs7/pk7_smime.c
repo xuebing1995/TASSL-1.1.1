@@ -40,6 +40,14 @@ PKCS7 *PKCS7_sign(X509 *signcert, EVP_PKEY *pkey, STACK_OF(X509) *certs,
             if (!PKCS7_content_new(p7, NID_pkcs7_sm2_data)) //1.2.156.10197.6.1.4.2.1
                 goto err;
         }
+        else
+        {
+            if (!PKCS7_set_type(p7, NID_pkcs7_signed))
+                goto err;
+
+            if (!PKCS7_content_new(p7, NID_pkcs7_data))
+                goto err;
+        }
     }
     else if (flags & PKCS7_SM2_GMT0010)
     {
