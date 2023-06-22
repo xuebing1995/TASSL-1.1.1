@@ -8,6 +8,9 @@
  */
 #ifndef OSSL_INTERNAL_REFCOUNT_H
 # define OSSL_INTERNAL_REFCOUNT_H
+#ifdef _WIN32
+#include <intrin.h>
+#endif // _WIN32
 
 /* Used to checking reference counts, most while doing perl5 stuff :-) */
 # if defined(OPENSSL_NO_STDIO)
@@ -113,13 +116,13 @@ static __inline int CRYPTO_DOWN_REF(volatile int *val, int *ret, void *lock)
 
 static __inline int CRYPTO_UP_REF(volatile int *val, int *ret, void *lock)
 {
-    *ret = _InterlockedExchangeAdd(val, 1) + 1;
+    *ret = _InterlockedExchangeAdd((volatile long*)val, 1) + 1;
     return 1;
 }
 
 static __inline int CRYPTO_DOWN_REF(volatile int *val, int *ret, void *lock)
 {
-    *ret = _InterlockedExchangeAdd(val, -1) - 1;
+    *ret = _InterlockedExchangeAdd((volatile long*)val, -1) - 1;
     return 1;
 }
 #  endif
