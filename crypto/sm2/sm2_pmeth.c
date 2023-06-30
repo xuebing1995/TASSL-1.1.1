@@ -49,7 +49,7 @@ static int pkey_sm2_init(EVP_PKEY_CTX *ctx)
         SM2err(SM2_F_PKEY_SM2_INIT, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-
+    smctx->encdata_format = 1;
     ctx->data = smctx;
     return 1;
 }
@@ -121,7 +121,7 @@ static int pkey_sm2_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src)
     dctx->peer_id_len = sctx->peer_id_len;
     dctx->peer_id_set = sctx->peer_id_set;
     dctx->md = sctx->md;
-
+    dctx->encdata_format = sctx->encdata_format;
     return 1;
 }
 
@@ -227,7 +227,9 @@ static int pkey_sm2_encrypt(EVP_PKEY_CTX *ctx,
     EC_KEY *ec = ctx->pkey->pkey.ec;
     SM2_PKEY_CTX *dctx = ctx->data;
     const EVP_MD *md = (dctx->md == NULL) ? EVP_sm3() : dctx->md;
-
+    //2023年6月30日23:02:39 沈雪冰 begin add，可设置encdata_format
+    int encdata_format = dctx->encdata_format;
+    //2023年6月30日23:02:39 沈雪冰 end add，可设置encdata_format
     if (out == NULL) {
         if (!sm2_ciphertext_size(ec, md, inlen, outlen))
             return -1;
@@ -235,7 +237,7 @@ static int pkey_sm2_encrypt(EVP_PKEY_CTX *ctx,
             return 1;
     }
 
-    return sm2_encrypt(ec, md, in, inlen, out, outlen);
+    return sm2_encrypt(ec, md, in, inlen, out, outlen, encdata_format);
 }
 
 static int pkey_sm2_decrypt(EVP_PKEY_CTX *ctx,
@@ -245,7 +247,9 @@ static int pkey_sm2_decrypt(EVP_PKEY_CTX *ctx,
     EC_KEY *ec = ctx->pkey->pkey.ec;
     SM2_PKEY_CTX *dctx = ctx->data;
     const EVP_MD *md = (dctx->md == NULL) ? EVP_sm3() : dctx->md;
-
+    //2023年6月30日23:02:39 沈雪冰 begin add，可设置encdata_format
+    int encdata_format = dctx->encdata_format;
+    //2023年6月30日23:02:39 沈雪冰 end add，可设置encdata_format
     if (out == NULL) {
         if (!sm2_plaintext_size(in, inlen, outlen))
             return -1;
@@ -253,7 +257,7 @@ static int pkey_sm2_decrypt(EVP_PKEY_CTX *ctx,
             return 1;
     }
 
-    return sm2_decrypt(ec, md, in, inlen, out, outlen);
+    return sm2_decrypt(ec, md, in, inlen, out, outlen, encdata_format);
 }
 
 static int pkey_sm2_derive(EVP_PKEY_CTX *ctx, unsigned char *key,

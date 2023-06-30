@@ -24,6 +24,9 @@ extern "C" {
 typedef struct SM2_Ciphertext_st SM2_Ciphertext;
 DECLARE_ASN1_FUNCTIONS(SM2_Ciphertext)
 
+typedef struct SM2_Ciphertext_st SM2_CiphertextEx;
+DECLARE_ASN1_FUNCTIONS(SM2_CiphertextEx)
+
 #ifndef OPENSSL_NO_CNSM
 /*described in section 7.4, GMT 0009/2014.
  * add by ysc at 20210305*/
@@ -93,16 +96,15 @@ int sm2_ciphertext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
 
 int sm2_plaintext_size(const unsigned char *ct, size_t ct_size, size_t *pt_size);
 
-int sm2_encrypt(const EC_KEY *key,
-                const EVP_MD *digest,
-                const uint8_t *msg,
-                size_t msg_len,
-                uint8_t *ciphertext_buf, size_t *ciphertext_len);
+int sm2_encrypt(const EC_KEY* key,
+    const EVP_MD* digest,
+    const uint8_t* msg,
+    size_t msg_len, uint8_t* ciphertext_buf, size_t* ciphertext_len, int encdata_format);
 
 int sm2_decrypt(const EC_KEY *key,
                 const EVP_MD *digest,
                 const uint8_t *ciphertext,
-                size_t ciphertext_len, uint8_t *ptext_buf, size_t *ptext_len);
+                size_t ciphertext_len, uint8_t *ptext_buf, size_t *ptext_len, int encdata_format);
 
 int SM2Kap_compute_key(void *out, size_t outlen, int responsor,\
     const char *peer_uid, int peer_uid_len, const char *self_uid, int self_uid_len, \

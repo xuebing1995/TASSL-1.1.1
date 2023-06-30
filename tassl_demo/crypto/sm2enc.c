@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
         unsigned char ptext_buf[1024] = {0};
         size_t ptext_len = sizeof(ptext_buf);
 
-        retval = sm2_decrypt(sm2key, EVP_sm3(), in, ciphertext_len, ptext_buf, &ptext_len);
+        retval = sm2_decrypt(sm2key, EVP_sm3(), in, ciphertext_len, ptext_buf, &ptext_len,1);
         if (!retval)
         {
             OPENSSL_free(in);

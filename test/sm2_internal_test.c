@@ -191,7 +191,7 @@ static int test_sm2_crypt(const EC_GROUP *group,
 
     recovered = OPENSSL_zalloc(ptext_len);
     if (!TEST_ptr(recovered)
-            || !TEST_true(sm2_decrypt(key, digest, ctext, ctext_len, recovered, &recovered_len))
+            || !TEST_true(sm2_decrypt(key, digest, ctext, ctext_len, recovered, &recovered_len,1))
             || !TEST_int_eq(recovered_len, msg_len)
             || !TEST_mem_eq(recovered, recovered_len, message, msg_len))
         goto done;

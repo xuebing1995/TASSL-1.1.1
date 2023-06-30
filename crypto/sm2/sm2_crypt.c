@@ -36,6 +36,16 @@ ASN1_SEQUENCE(SM2_Ciphertext) = {
 
 IMPLEMENT_ASN1_FUNCTIONS(SM2_Ciphertext)
 
+
+ASN1_SEQUENCE(SM2_CiphertextEx) = {
+    ASN1_SIMPLE(SM2_CiphertextEx, C1x, BIGNUM),
+    ASN1_SIMPLE(SM2_CiphertextEx, C1y, BIGNUM),
+    ASN1_SIMPLE(SM2_CiphertextEx, C2, ASN1_OCTET_STRING),
+    ASN1_SIMPLE(SM2_CiphertextEx, C3, ASN1_OCTET_STRING),
+} ASN1_SEQUENCE_END(SM2_CiphertextEx)
+
+IMPLEMENT_ASN1_FUNCTIONS(SM2_CiphertextEx)
+
 #ifndef OPENSSL_NO_CNSM
 /*described in section 7.4, GMT 0009/2014.
  * add by ysc at 20210305*/
@@ -342,7 +352,7 @@ int sm2_ciphertext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
 int sm2_encrypt(const EC_KEY *key,
                 const EVP_MD *digest,
                 const uint8_t *msg,
-                size_t msg_len, uint8_t *ciphertext_buf, size_t *ciphertext_len)
+                size_t msg_len, uint8_t *ciphertext_buf, size_t *ciphertext_len,int encdata_format)
 {
     int rc = 0, ciphertext_leni;
     size_t i;
@@ -468,8 +478,15 @@ int sm2_encrypt(const EC_KEY *key,
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_INTERNAL_ERROR);
         goto done;
     }
-
-    ciphertext_leni = i2d_SM2_Ciphertext(&ctext_struct, &ciphertext_buf);
+    if (encdata_format)
+    {
+        ciphertext_leni = i2d_SM2_Ciphertext(&ctext_struct, &ciphertext_buf);
+    }
+    else//2023年7月1日00:36:27 沈雪冰 add C1|C2|C3格式
+    {
+        ciphertext_leni = i2d_SM2_CiphertextEx((SM2_CiphertextEx*) & ctext_struct, &ciphertext_buf);
+    }
+    
     /* Ensure cast to size_t is safe */
     if (ciphertext_leni < 0) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_INTERNAL_ERROR);
@@ -495,7 +512,7 @@ int sm2_encrypt(const EC_KEY *key,
 int sm2_decrypt(const EC_KEY *key,
                 const EVP_MD *digest,
                 const uint8_t *ciphertext,
-                size_t ciphertext_len, uint8_t *ptext_buf, size_t *ptext_len)
+                size_t ciphertext_len, uint8_t *ptext_buf, size_t *ptext_len, int encdata_format)
 {
     int rc = 0;
     int i;
@@ -519,8 +536,15 @@ int sm2_decrypt(const EC_KEY *key,
        goto done;
 
     memset(ptext_buf, 0xFF, *ptext_len);
-
-    sm2_ctext = d2i_SM2_Ciphertext(NULL, &ciphertext, ciphertext_len);
+    if (encdata_format)
+    {
+        sm2_ctext = d2i_SM2_Ciphertext(NULL, &ciphertext, ciphertext_len);
+    }
+    else //2023年7月1日00:36:27 沈雪冰 add C1|C2|C3格式
+    {
+        sm2_ctext = (SM2_Ciphertext*)d2i_SM2_CiphertextEx(NULL, &ciphertext, ciphertext_len);
+    }
+   
 
     if (sm2_ctext == NULL) {
         SM2err(SM2_F_SM2_DECRYPT, SM2_R_ASN1_ERROR);
