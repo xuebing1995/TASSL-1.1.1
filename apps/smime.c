@@ -485,6 +485,7 @@ int smime_main(int argc, char **argv)
     if (operation == SMIME_ENCRYPT) {
         if (indef)
             flags |= PKCS7_STREAM;
+            flags |= PKCS7_SM2_GMT0010; //2023ƒÍ7‘¬2»’22:01:20 …Ú—©±˘ ≤‚ ‘ add
         p7 = PKCS7_encrypt(encerts, in, cipher, flags);
     } else if (operation & SMIME_SIGNERS) {
         int i;

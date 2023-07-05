@@ -251,7 +251,7 @@ static int pkey_sm2_decrypt(EVP_PKEY_CTX *ctx,
     int encdata_format = dctx->encdata_format;
     //2023年6月30日23:02:39 沈雪冰 end add，可设置encdata_format
     if (out == NULL) {
-        if (!sm2_plaintext_size(in, inlen, outlen))
+        if (!sm2_plaintext_size(in, inlen, outlen, encdata_format))
             return -1;
         else
             return 1;

@@ -298,6 +298,10 @@ STACK_OF(X509) *PKCS7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs,
                                    int flags);
 PKCS7 *PKCS7_encrypt(STACK_OF(X509) *certs, BIO *in, const EVP_CIPHER *cipher,
                      int flags);
+
+PKCS7* PKCS7_encryptEx(STACK_OF(X509)* recipientCerts, BIO* in, const EVP_CIPHER* cipher, X509_CRL* crl,
+    X509* signcert, EVP_PKEY* pkey, STACK_OF(X509)* signCerts, int flags);
+
 int PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data,
                   int flags);
 

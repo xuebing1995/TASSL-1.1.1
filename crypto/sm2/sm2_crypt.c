@@ -65,6 +65,32 @@ ASN1_SEQUENCE(SM2_Enveloped_Key) = {
 
 IMPLEMENT_ASN1_FUNCTIONS(SM2_Enveloped_Key)
 
+
+//2023年7月1日12:09:43 沈雪冰 begin add，C|C2|C3  相互转换 C1|C2|C3
+SM2_Ciphertext* SM2_Ciphertext_C1C2C3_to_C1C3C2(const SM2_CiphertextEx* c1c2c3, SM2_Ciphertext* c1c3c2)
+{
+    if (c1c2c3)
+    {
+        c1c3c2->C1x = c1c2c3->C1x;
+        c1c3c2->C1y = c1c2c3->C1y;
+        c1c3c2->C2 = c1c2c3->C2;
+        c1c3c2->C3 = c1c2c3->C3;
+    }
+    return c1c3c2;
+}
+SM2_CiphertextEx* SM2_Ciphertext_C1C3C2_to_C1C2C3(const SM2_Ciphertext* c1c2c3, SM2_CiphertextEx* c1c3c2)
+{
+    if (c1c2c3)
+    {
+        c1c3c2->C1x = c1c2c3->C1x;
+        c1c3c2->C1y = c1c2c3->C1y;
+        c1c3c2->C2 = c1c2c3->C2;
+        c1c3c2->C3 = c1c2c3->C3;
+    }
+    return c1c3c2;
+}
+//2023年7月1日12:09:43 沈雪冰 end add，C|C2|C3  相互转换 C1|C2|C3
+
 BIO *SM2_Enveloped_Key_dataDecode(SM2_Enveloped_Key *sm2evpkey, EVP_PKEY *pkey )
 {
     BIO *out = NULL, *etmp = NULL, *bio = NULL;
@@ -312,12 +338,17 @@ static size_t ec_field_size(const EC_GROUP *group)
     return field_size;
 }
 
-int sm2_plaintext_size(const unsigned char *ct, size_t ct_size, size_t *pt_size)
+int sm2_plaintext_size(const unsigned char *ct, size_t ct_size, size_t *pt_size, int encdata_format)
 {
     struct SM2_Ciphertext_st *sm2_ctext = NULL;
-
-    sm2_ctext = d2i_SM2_Ciphertext(NULL, &ct, ct_size);
-
+    if (encdata_format)
+    {
+        sm2_ctext = d2i_SM2_Ciphertext(NULL, &ct, ct_size);
+    }
+    else
+    {          
+        sm2_ctext =(SM2_Ciphertext*) d2i_SM2_CiphertextEx(NULL, &ct, ct_size);
+    } 
     if (sm2_ctext == NULL) {
         SM2err(SM2_F_SM2_PLAINTEXT_SIZE, SM2_R_INVALID_ENCODING);
         return 0;
@@ -543,8 +574,7 @@ int sm2_decrypt(const EC_KEY *key,
     else //2023年7月1日00:36:27 沈雪冰 add C1|C2|C3格式
     {
         sm2_ctext = (SM2_Ciphertext*)d2i_SM2_CiphertextEx(NULL, &ciphertext, ciphertext_len);
-    }
-   
+    } 
 
     if (sm2_ctext == NULL) {
         SM2err(SM2_F_SM2_DECRYPT, SM2_R_ASN1_ERROR);

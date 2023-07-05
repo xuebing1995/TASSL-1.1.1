@@ -136,14 +136,22 @@ int PKCS7_set_type(PKCS7 *p7, int type)
             goto err;
         break;
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         p7->type = obj;
         if ((p7->d.signed_and_enveloped = PKCS7_SIGN_ENVELOPE_new())
             == NULL)
             goto err;
         if (!ASN1_INTEGER_set(p7->d.signed_and_enveloped->version, 1))
             goto err;
-        p7->d.signed_and_enveloped->enc_data->content_type
-            = OBJ_nid2obj(NID_pkcs7_data);
+        
+        if (type == NID_pkcs7_sm2_signedAndEnveloped) { //add by gu on 20180706 for pkcs7 support sm2
+            p7->d.signed_and_enveloped->enc_data->content_type
+                = OBJ_nid2obj(NID_pkcs7_sm2_data);
+        }
+        else {
+            p7->d.signed_and_enveloped->enc_data->content_type
+                = OBJ_nid2obj(NID_pkcs7_data);
+        }
         break;
     case NID_pkcs7_enveloped:
     case NID_pkcs7_sm2_enveloped:
@@ -210,6 +218,7 @@ int PKCS7_add_signer(PKCS7 *p7, PKCS7_SIGNER_INFO *psi)
         md_sk = p7->d.sign->md_algs;
         break;
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         signer_sk = p7->d.signed_and_enveloped->signer_info;
         md_sk = p7->d.signed_and_enveloped->md_algs;
         break;
@@ -261,6 +270,7 @@ int PKCS7_add_certificate(PKCS7 *p7, X509 *x509)
         sk = &(p7->d.sign->cert);
         break;
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         sk = &(p7->d.signed_and_enveloped->cert);
         break;
     default:
@@ -294,6 +304,7 @@ int PKCS7_add_crl(PKCS7 *p7, X509_CRL *crl)
         sk = &(p7->d.sign->crl);
         break;
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         sk = &(p7->d.signed_and_enveloped->crl);
         break;
     default:
@@ -459,6 +470,7 @@ int PKCS7_add_recipient_info(PKCS7 *p7, PKCS7_RECIP_INFO *ri)
     i = OBJ_obj2nid(p7->type);
     switch (i) {
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         sk = p7->d.signed_and_enveloped->recipientinfo;
         break;
     case NID_pkcs7_enveloped:
@@ -539,6 +551,7 @@ int PKCS7_set_cipher(PKCS7 *p7, const EVP_CIPHER *cipher)
     i = OBJ_obj2nid(p7->type);
     switch (i) {
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         ec = p7->d.signed_and_enveloped->enc_data;
         break;
     case NID_pkcs7_enveloped:
@@ -573,6 +586,7 @@ int PKCS7_stream(unsigned char ***boundary, PKCS7 *p7)
         break;
 
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         os = p7->d.signed_and_enveloped->enc_data->enc_data;
         if (os == NULL) {
             os = ASN1_OCTET_STRING_new();

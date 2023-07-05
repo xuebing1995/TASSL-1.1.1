@@ -24,6 +24,9 @@ extern "C" {
 typedef struct SM2_Ciphertext_st SM2_Ciphertext;
 DECLARE_ASN1_FUNCTIONS(SM2_Ciphertext)
 
+typedef struct SM2_Ciphertext_st SM2_CiphertextEx;
+DECLARE_ASN1_FUNCTIONS(SM2_CiphertextEx)
+
 #ifndef OPENSSL_NO_CNSM
 /*described in section 7.4, GMT 0009/2014.
  * add by ysc at 20210305*/
@@ -91,7 +94,7 @@ int sm2_verify(const unsigned char *dgst, int dgstlen,
 int sm2_ciphertext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
                         size_t *ct_size);
 
-int sm2_plaintext_size(const unsigned char *ct, size_t ct_size, size_t *pt_size);
+int sm2_plaintext_size(const unsigned char *ct, size_t ct_size, size_t *pt_size, int encdata_format);
 
 int sm2_encrypt(const EC_KEY *key,
                 const EVP_MD *digest,

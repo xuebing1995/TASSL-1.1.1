@@ -852,6 +852,7 @@ int PKCS7_dataFinal(PKCS7 *p7, BIO *bio, int no_hash)
         os = p7->d.data;
         break;
     case NID_pkcs7_signedAndEnveloped:
+    case NID_pkcs7_sm2_signedAndEnveloped:
         /* XXXXXXXXXXXXXXXX */
         si_sk = p7->d.signed_and_enveloped->signer_info;
         os = p7->d.signed_and_enveloped->enc_data->enc_data;
