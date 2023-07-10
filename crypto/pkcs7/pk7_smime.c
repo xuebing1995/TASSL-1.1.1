@@ -265,7 +265,7 @@ int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
         return 0;
     }
 
-    if (!PKCS7_type_is_signed(p7)) {
+    if (!PKCS7_type_is_signed(p7) && !PKCS7_type_is_signedAndEnveloped(p7)) {
         PKCS7err(PKCS7_F_PKCS7_VERIFY, PKCS7_R_WRONG_CONTENT_TYPE);
         return 0;
     }
@@ -368,7 +368,7 @@ int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
         hashType = 2;//原文裸签
     }
     //2023年6月18日22:53:25 沈雪冰 bengin add, 添加证书链用于计算SM2签名时的Z值
-	if ((OBJ_obj2nid(p7->type) == NID_pkcs7_sm2_signed) && (!p7->d.sign->cert))
+	if ((OBJ_obj2nid(p7->type) == NID_pkcs7_sm2_signed) || (OBJ_obj2nid(p7->type) == NID_pkcs7_sm2_signedAndEnveloped) && (!p7->d.sign->cert))
 	{
         setCerts = 1;
 		p7->d.sign->cert = certs; //为了SM2做Z值计算，必须要有证书链
@@ -454,7 +454,7 @@ STACK_OF(X509) *PKCS7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs,
         return NULL;
     }
 
-    if (!PKCS7_type_is_signed(p7)) {
+    if (!PKCS7_type_is_signed(p7) && !PKCS7_type_is_signedAndEnveloped(p7)) {
         PKCS7err(PKCS7_F_PKCS7_GET0_SIGNERS, PKCS7_R_WRONG_CONTENT_TYPE);
         return NULL;
     }
@@ -747,5 +747,99 @@ int PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data, int flags)
 err:
     OPENSSL_free(buf);
     BIO_free_all(tmpmem);
+    return ret;
+}
+
+int PKCS7_decryptEx(PKCS7* p7, EVP_PKEY* pkey, X509* cert,
+    STACK_OF(X509)* certs, X509_STORE* store, BIO* data, int flags)
+{
+    BIO* tmpmem;
+    int ret = 0, i;
+    char* buf = NULL;
+    BIO* indata = NULL;
+
+    if (!p7) {
+        PKCS7err(PKCS7_F_PKCS7_DECRYPT, PKCS7_R_INVALID_NULL_POINTER);
+        return 0;
+    }
+
+    if (!PKCS7_type_is_signedAndEnveloped(p7)) {
+        PKCS7err(PKCS7_F_PKCS7_DECRYPT, PKCS7_R_WRONG_CONTENT_TYPE);
+        return 0;
+    }
+
+    if (cert && !X509_check_private_key(cert, pkey)) {
+        PKCS7err(PKCS7_F_PKCS7_DECRYPT,
+            PKCS7_R_PRIVATE_KEY_DOES_NOT_MATCH_CERTIFICATE);
+        return 0;
+    }
+
+    if ((tmpmem = PKCS7_dataDecode(p7, pkey, NULL, cert)) == NULL) {
+        PKCS7err(PKCS7_F_PKCS7_DECRYPT, PKCS7_R_DECRYPT_ERROR);
+        return 0;
+    }
+
+    if (flags & PKCS7_TEXT) {
+        BIO* tmpbuf, * bread;
+        /* Encrypt BIOs can't do BIO_gets() so add a buffer BIO */
+        if ((tmpbuf = BIO_new(BIO_f_buffer())) == NULL) {
+            PKCS7err(PKCS7_F_PKCS7_DECRYPT, ERR_R_MALLOC_FAILURE);
+            BIO_free_all(tmpmem);
+            return 0;
+        }
+        if ((bread = BIO_push(tmpbuf, tmpmem)) == NULL) {
+            PKCS7err(PKCS7_F_PKCS7_DECRYPT, ERR_R_MALLOC_FAILURE);
+            BIO_free_all(tmpbuf);
+            BIO_free_all(tmpmem);
+            return 0;
+        }
+        ret = SMIME_text(bread, data);
+        if (ret > 0 && BIO_method_type(tmpmem) == BIO_TYPE_CIPHER) {
+            if (!BIO_get_cipher_status(tmpmem))
+                ret = 0;
+        }
+        BIO_free_all(bread);
+        return ret;
+    }
+    if ((buf = OPENSSL_malloc(BUFFERSIZE)) == NULL) {
+        PKCS7err(PKCS7_F_PKCS7_DECRYPT, ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+    for (;;) {
+        i = BIO_read(tmpmem, buf, BUFFERSIZE);
+        if (i <= 0) {
+            ret = 1;
+            if (BIO_method_type(tmpmem) == BIO_TYPE_CIPHER) {
+                if (!BIO_get_cipher_status(tmpmem))
+                    ret = 0;
+            }
+
+            break;
+        }
+        if (!(flags & PKCS7_NOSIGS))
+        {
+            indata = BIO_new_mem_buf(buf, i);
+            if (!indata)
+            {
+                PKCS7err(PKCS7_F_PKCS7_DECRYPT, ERR_R_MALLOC_FAILURE);
+                goto err;
+            }
+            //验证P7签名
+            ret = PKCS7_verify(p7, certs, store, indata, NULL, flags);
+            if (!ret)
+            {
+                PKCS7err(PKCS7_F_PKCS7_DECRYPT, ERR_R_MALLOC_FAILURE);
+                goto err;
+            }
+        }
+        if (BIO_write(data, buf, i) != i) {
+                        break;
+        }
+        
+    }
+err:
+    OPENSSL_free(buf);
+    BIO_free_all(tmpmem);
+    BIO_free(indata);
     return ret;
 }

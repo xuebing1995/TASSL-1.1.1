@@ -204,8 +204,9 @@ static int pkcs7_decrypt_rinfo(unsigned char **pek, int *peklen,
 **         0:原流程，如果是SM2签名则增加Z值到待hash的数据中
 **         1:直接返回一个空BIO，不进行其他操作，相当于裸签，不计算Z值
 **         2:裸签，区别于1的是按照原流程，不是返回一个空BIO，在进行TSTINFO时，不增加Z值，需要按照原模板，否则d2i_TS_TST_INFO失败
+**         3:信封验签 暂时先不用，我看验签时 bio参数都是空，暂时先使用这个参数判断 //2023年7月11日01:06:23 沈雪冰 add
 */
-BIO *PKCS7_dataInit(PKCS7 *p7, BIO *bio, int no_hash)       
+BIO *PKCS7_dataInit(PKCS7 *p7, BIO *bio, int no_hash)
 {
     int i;
     BIO *out = NULL, *btmp = NULL;
@@ -271,7 +272,7 @@ BIO *PKCS7_dataInit(PKCS7 *p7, BIO *bio, int no_hash)
         md_sk = p7->d.signed_and_enveloped->md_algs;
         xalg = p7->d.signed_and_enveloped->enc_data->algorithm;
         evp_cipher = p7->d.signed_and_enveloped->enc_data->cipher;
-        if (evp_cipher == NULL) {
+        if (evp_cipher == NULL && !bio) {
             PKCS7err(PKCS7_F_PKCS7_DATAINIT, PKCS7_R_CIPHER_NOT_INITIALIZED);
             goto err;
         }
@@ -281,7 +282,7 @@ BIO *PKCS7_dataInit(PKCS7 *p7, BIO *bio, int no_hash)
         rsk = p7->d.enveloped->recipientinfo;
         xalg = p7->d.enveloped->enc_data->algorithm;
         evp_cipher = p7->d.enveloped->enc_data->cipher;
-        if (evp_cipher == NULL) {
+        if (evp_cipher == NULL && !bio) {
             PKCS7err(PKCS7_F_PKCS7_DATAINIT, PKCS7_R_CIPHER_NOT_INITIALIZED);
             goto err;
         }

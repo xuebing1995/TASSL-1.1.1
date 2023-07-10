@@ -139,6 +139,8 @@ static const ERR_STRING_DATA PKCS7_str_reasons[] = {
     {ERR_PACK(ERR_LIB_PKCS7, 0, PKCS7_R_WRONG_CONTENT_TYPE),
     "wrong content type"},
     {ERR_PACK(ERR_LIB_PKCS7, 0, PKCS7_R_WRONG_PKCS7_TYPE), "wrong pkcs7 type"},
+     {ERR_PACK(ERR_LIB_PKCS7, 0, PKCS7_R_DECRYPT_VERIFY_ERROR),
+    "decrypt verify error"},
     {0, NULL}
 };
 

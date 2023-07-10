@@ -534,7 +534,7 @@ int PKCS7_RECIP_INFO_set(PKCS7_RECIP_INFO *p7i, X509 *x509)
 
 X509 *PKCS7_cert_from_signer_info(PKCS7 *p7, PKCS7_SIGNER_INFO *si)
 {
-    if (PKCS7_type_is_signed(p7))
+    if (PKCS7_type_is_signed(p7) || PKCS7_type_is_signedAndEnveloped(p7))
         return (X509_find_by_issuer_and_serial(p7->d.sign->cert,
                                                si->issuer_and_serial->issuer,
                                                si->

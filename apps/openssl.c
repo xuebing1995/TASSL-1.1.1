@@ -116,7 +116,7 @@ static char *make_config_name(void)
     return p;
 }
 
-int main1(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     FUNCTION f, *fp;
     LHASH_OF(FUNCTION) *prog = NULL;

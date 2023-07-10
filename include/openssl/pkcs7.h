@@ -153,9 +153,9 @@ DEFINE_STACK_OF(PKCS7)
 
 # define PKCS7_type_is_signed(a) (OBJ_obj2nid((a)->type) == NID_pkcs7_signed || OBJ_obj2nid((a)->type) == NID_pkcs7_sm2_signed)
 # define PKCS7_type_is_encrypted(a) (OBJ_obj2nid((a)->type) == NID_pkcs7_encrypted)
-# define PKCS7_type_is_enveloped(a) (OBJ_obj2nid((a)->type) == NID_pkcs7_enveloped)
+# define PKCS7_type_is_enveloped(a) (OBJ_obj2nid((a)->type) == NID_pkcs7_enveloped || OBJ_obj2nid((a)->type) == NID_pkcs7_sm2_enveloped)
 # define PKCS7_type_is_signedAndEnveloped(a) \
-                (OBJ_obj2nid((a)->type) == NID_pkcs7_signedAndEnveloped)
+                (OBJ_obj2nid((a)->type) == NID_pkcs7_signedAndEnveloped || OBJ_obj2nid((a)->type) == NID_pkcs7_sm2_signedAndEnveloped)
 # define PKCS7_type_is_data(a)   (OBJ_obj2nid((a)->type) == NID_pkcs7_data || OBJ_obj2nid((a)->type) == NID_pkcs7_sm2_data)
 # define PKCS7_type_is_digest(a)   (OBJ_obj2nid((a)->type) == NID_pkcs7_digest)
 
@@ -304,6 +304,8 @@ PKCS7* PKCS7_encryptEx(STACK_OF(X509)* recipientCerts, BIO* in, const EVP_CIPHER
 
 int PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data,
                   int flags);
+int PKCS7_decryptEx(PKCS7* p7, EVP_PKEY* pkey, X509* cert, 
+    STACK_OF(X509)* certs, X509_STORE* store,BIO* data,int flags);
 
 int PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
                               STACK_OF(X509_ALGOR) *cap);
